@@ -19,16 +19,39 @@ function pvm {
   "l" | "list" )
     [ $# -ne 1 ] && pvm help && return 1
 
-    pvm __export_pvm_dir || return 1
-    [ -d "$PVM_DIR/phps" ] || pvm __e "Nothing was installed" && return 0
+    [ ! -d "$PVM_DIR" ]      && pvm __export_pvm_dir
+    [ ! -d "$PVM_DIR" ]      && return 1
+    [ ! -d "$PVM_DIR/phps" ] && pvm __e "Nothing was installed" && return 0
 
-    versions=`ls -d $PVM_DIR/phps/*`
-
+    versions=$(cd "$PVM_DIR/phps" ; ls -d *)
     for version in $versions
     do
       echo "- $version"
     done
-
+    
+    ;;
+    
+  "use" )
+    [ $# -ne 2 ] && pvm help && return 1
+    
+    [ ! -d "$PVM_DIR" ] && pvm __export_pvm_dir
+    [ ! -d "$PVM_DIR" ] && return 1
+    
+    [ "$PVM_VERSION" == "" ] && pvm __export_pvm_version
+    [ "$PVM_VERSION" == "" ] && return 1
+    
+    VERSION=`pvm __parse_version $2`
+    [ "$VERSION" == "" ] && pvm __e "Unknown version: $2" && return 1
+    
+    if [[ $PATH == *$PVM_DIR/phps/*/bin* ]]
+    then
+      PATH=${PATH%$PVM_DIR/phps/*/bin*}${PATH#*$PVM_DIR/phps/*/bin:}
+    fi
+    
+    PATH="$PVM_DIR/phps/$VERSION/bin:$PATH"
+    
+    export $PATH
+    
     ;;
     
   "exec" )
@@ -40,7 +63,9 @@ function pvm {
     [ $# -lt 2 ] && pvm help && return 1
     [ $# -ge 3 ] && ALIAS=$3
 
-    pvm __export_pvm_dir || return 1
+    [ ! -d "$PVM_DIR" ] && pvm __export_pvm_dir
+    [ ! -d "$PVM_DIR" ] && return 1
+    
     VERSION=`pvm __parse_version $2`
     SRC_URL=`pvm __download_src_url $VERSION`
     SRC="$PVM_DIR/build/php-$VERSION"
@@ -94,14 +119,24 @@ function pvm {
   "__parse_version" )
     [ $# -gt 2 ] && return 1
 
-    version=$2
+    VERSION=$2
 
-    [ "$version" == "" ] && version="$PVM_VERSION"
-    [ "$version" == "" ] && [ -f "$PVM_DIR/default" ] && version=`cat $PVM_DIR/default`
-    [ "$version" == "" ] && return 1
+    [ "$VERSION" == "" ] && VERSION="$PVM_VERSION"
+    [ "$VERSION" == "" ] && [ -f "$PVM_DIR/default" ] && VERSION=`cat $PVM_DIR/default`
+    [ "$VERSION" == "" ] && return 1
 
-    echo $version
+    echo $VERSION
 
+    ;;
+    
+  "__export_pvm_version" )
+    [ $# -gt 2 ] && return 1
+    
+    export PVM_VERSION=$(pvm __parse_version)
+    [ "$PVM_VERSION" == "" ] && return 1
+    
+    return 0
+    
     ;;
 
   "__export_pvm_dir" )
