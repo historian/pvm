@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+PVM_SRC=$(cd $(dirname $(dirname ${BASH_SOURCE[0]:-$0})); pwd)
+
+. "$PVM_SRC/lib/pvm.sh"
+
+pvm $@
