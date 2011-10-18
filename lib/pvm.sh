@@ -38,7 +38,6 @@ function pvm {
     [ ! -d "$PVM_DIR" ] && return 1
     
     [ "$PVM_VERSION" == "" ] && pvm __export_pvm_version
-    [ "$PVM_VERSION" == "" ] && return 1
     
     VERSION=`pvm __parse_version $2`
     [ "$VERSION" == "" ] && pvm __e "Unknown version: $2" && return 1
@@ -50,6 +49,7 @@ function pvm {
     
     PATH="$PVM_DIR/phps/$VERSION/bin:$PATH"
     
+    pvm __export_pvm_version $VERSION
     export $PATH
     
     ;;
