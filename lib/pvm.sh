@@ -50,7 +50,7 @@ function pvm {
     PATH="$PVM_DIR/phps/$VERSION/bin:$PATH"
     
     pvm __export_pvm_version $VERSION
-    export $PATH
+    export PATH=$PATH
     
     ;;
     
